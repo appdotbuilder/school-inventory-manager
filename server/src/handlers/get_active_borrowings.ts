@@ -1,9 +1,25 @@
 
+import { db } from '../db';
+import { borrowingRecordsTable } from '../db/schema';
 import { type BorrowingRecord } from '../schema';
+import { or, eq } from 'drizzle-orm';
 
-export async function getActiveBorrowings(): Promise<BorrowingRecord[]> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is to fetch all currently active borrowing records
-    // (status = 'active' or 'overdue') with related item and user info.
-    return [];
-}
+export const getActiveBorrowings = async (): Promise<BorrowingRecord[]> => {
+  try {
+    const results = await db.select()
+      .from(borrowingRecordsTable)
+      .where(
+        or(
+          eq(borrowingRecordsTable.status, 'active'),
+          eq(borrowingRecordsTable.status, 'overdue')
+        )
+      )
+      .execute();
+
+    // Return results directly - borrowing records don't have numeric fields that need conversion
+    return results;
+  } catch (error) {
+    console.error('Failed to fetch active borrowings:', error);
+    throw error;
+  }
+};

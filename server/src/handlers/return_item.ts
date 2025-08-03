@@ -1,21 +1,53 @@
 
+import { db } from '../db';
+import { borrowingRecordsTable, inventoryItemsTable } from '../db/schema';
 import { type ReturnItemInput, type BorrowingRecord } from '../schema';
+import { eq, sql } from 'drizzle-orm';
 
 export async function returnItem(input: ReturnItemInput): Promise<BorrowingRecord> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is to process item return, update borrowing record status,
-    // set returned_date, and update item quantity_available.
-    return {
-        id: input.borrowing_record_id,
-        item_id: 0,
-        user_id: 0,
-        quantity_borrowed: 0,
-        borrowed_date: new Date(),
-        due_date: new Date(),
+  try {
+    // First, get the borrowing record to validate it exists and is active
+    const borrowingRecords = await db.select()
+      .from(borrowingRecordsTable)
+      .where(eq(borrowingRecordsTable.id, input.borrowing_record_id))
+      .execute();
+
+    if (borrowingRecords.length === 0) {
+      throw new Error('Borrowing record not found');
+    }
+
+    const borrowingRecord = borrowingRecords[0];
+
+    if (borrowingRecord.status !== 'active' && borrowingRecord.status !== 'overdue') {
+      throw new Error('Item has already been returned');
+    }
+
+    // Update the borrowing record - set returned_date, status, and notes
+    const updatedRecords = await db.update(borrowingRecordsTable)
+      .set({
         returned_date: new Date(),
         status: 'returned',
         notes: input.notes,
-        created_at: new Date(),
         updated_at: new Date()
-    } as BorrowingRecord;
+      })
+      .where(eq(borrowingRecordsTable.id, input.borrowing_record_id))
+      .returning()
+      .execute();
+
+    const updatedRecord = updatedRecords[0];
+
+    // Update the inventory item - increase quantity_available using SQL increment
+    await db.update(inventoryItemsTable)
+      .set({
+        quantity_available: sql`${inventoryItemsTable.quantity_available} + ${borrowingRecord.quantity_borrowed}`,
+        updated_at: new Date()
+      })
+      .where(eq(inventoryItemsTable.id, borrowingRecord.item_id))
+      .execute();
+
+    return updatedRecord;
+  } catch (error) {
+    console.error('Item return failed:', error);
+    throw error;
+  }
 }
