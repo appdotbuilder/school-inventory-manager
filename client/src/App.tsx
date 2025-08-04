@@ -18,88 +18,10 @@ import type {
   CreateInventoryItemInput,
   CreateUserInput,
   CreateBorrowingRecordInput,
-  AdminLoginInput,
   UpdateInventoryItemInput
 } from '../../server/src/schema';
 
-// Admin Login Response type based on handler
-type AdminLoginResponse = { admin: Admin; token: string } | null;
-
-// Admin Login Component
-function AdminLogin({ onLogin }: { onLogin: (admin: Admin) => void }) {
-  const [formData, setFormData] = useState<AdminLoginInput>({
-    username: '',
-    password: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response: AdminLoginResponse = await trpc.adminLogin.mutate(formData);
-      if (response) {
-        onLogin(response.admin);
-      } else {
-        setError('Invalid credentials. Please try again.');
-      }
-    } catch (error) {
-      setError('Invalid credentials. Please try again.');
-      console.error('Login failed:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">🏫 School Inventory</CardTitle>
-          <CardDescription>Administrator Login</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert className="border-blue-200 bg-blue-50 mb-4">
-            <AlertDescription className="text-blue-700">
-              <strong>Default Admin Account:</strong><br />
-              Username: <code>fajar</code><br />
-              Password: <code>fajar</code>
-            </AlertDescription>
-          </Alert>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertDescription className="text-red-700">{error}</AlertDescription>
-              </Alert>
-            )}
-            <Input
-              placeholder="Username"
-              value={formData.username}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFormData((prev: AdminLoginInput) => ({ ...prev, username: e.target.value }))
-              }
-              required
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFormData((prev: AdminLoginInput) => ({ ...prev, password: e.target.value }))
-              }
-              required
-            />
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+// Admin Login Component - REMOVED
 
 // Dashboard Component
 function Dashboard({ stats }: { stats: DashboardStats }) {
@@ -918,7 +840,13 @@ function Reports() {
 
 // Main App Component
 function App() {
-  const [currentAdmin, setCurrentAdmin] = useState<Admin | null>(null);
+  const [currentAdmin] = useState<Admin>({ 
+    id: 1, 
+    username: 'fajar', 
+    email: 'fajar@school.edu', 
+    password_hash: 'dummy', 
+    created_at: new Date() 
+  });
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -932,20 +860,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (currentAdmin) {
-      loadDashboardStats();
-    }
-  }, [currentAdmin, loadDashboardStats]);
-
-  const handleLogout = () => {
-    setCurrentAdmin(null);
-    setDashboardStats(null);
-    setActiveTab('dashboard');
-  };
-
-  if (!currentAdmin) {
-    return <AdminLogin onLogin={setCurrentAdmin} />;
-  }
+    loadDashboardStats();
+  }, [loadDashboardStats]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -955,9 +871,6 @@ function App() {
             <h1 className="text-2xl font-bold text-gray-900">🏫 School Inventory Management</h1>
             <p className="text-sm text-gray-600">Welcome back, {currentAdmin.username}!</p>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            Sign Out
-          </Button>
         </div>
       </header>
 

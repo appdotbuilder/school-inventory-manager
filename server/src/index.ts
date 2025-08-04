@@ -9,7 +9,6 @@ import { z } from 'zod';
 // Import schemas
 import {
   createAdminInputSchema,
-  adminLoginInputSchema,
   createInventoryItemInputSchema,
   updateInventoryItemInputSchema,
   createUserInputSchema,
@@ -19,7 +18,6 @@ import {
 
 // Import handlers
 import { createAdmin } from './handlers/create_admin';
-import { adminLogin } from './handlers/admin_login';
 import { createInventoryItem } from './handlers/create_inventory_item';
 import { updateInventoryItem } from './handlers/update_inventory_item';
 import { getInventoryItems } from './handlers/get_inventory_items';
@@ -55,10 +53,6 @@ const appRouter = router({
   createAdmin: publicProcedure
     .input(createAdminInputSchema)
     .mutation(({ input }) => createAdmin(input)),
-  
-  adminLogin: publicProcedure
-    .input(adminLoginInputSchema)
-    .mutation(({ input }) => adminLogin(input)),
 
   // Inventory management
   createInventoryItem: publicProcedure
