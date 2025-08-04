@@ -36,6 +36,7 @@ import { updateOverdueStatus } from './handlers/update_overdue_status';
 import { getDashboardStats } from './handlers/get_dashboard_stats';
 import { getItemUsageReport } from './handlers/get_item_usage_report';
 import { searchItemsByLabel } from './handlers/search_items_by_label';
+import { seedDefaultAdmin } from './handlers/seed_default_admin';
 
 const t = initTRPC.create({
   transformer: superjson,
@@ -124,6 +125,9 @@ const appRouter = router({
 export type AppRouter = typeof appRouter;
 
 async function start() {
+  // Seed default admin account on startup
+  await seedDefaultAdmin();
+  
   const port = process.env['SERVER_PORT'] || 2022;
   const server = createHTTPServer({
     middleware: (req, res, next) => {

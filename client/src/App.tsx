@@ -61,6 +61,13 @@ function AdminLogin({ onLogin }: { onLogin: (admin: Admin) => void }) {
           <CardDescription>Administrator Login</CardDescription>
         </CardHeader>
         <CardContent>
+          <Alert className="border-blue-200 bg-blue-50 mb-4">
+            <AlertDescription className="text-blue-700">
+              <strong>Default Admin Account:</strong><br />
+              Username: <code>fajar</code><br />
+              Password: <code>fajar</code>
+            </AlertDescription>
+          </Alert>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert className="border-red-200 bg-red-50">
